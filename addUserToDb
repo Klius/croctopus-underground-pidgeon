@@ -1,0 +1,30 @@
+#!flask/bin/python
+from app import db,models
+import sys, getopt
+
+def main(argv):
+	name = ''
+	mail = ''
+	code = ''
+	try:
+		opts, args = getopt.getopt(argv,"hn:m:c:",["name=","mail=","code="])
+	except getopt.GetoptError:
+		print 'peta al inicio'
+		sys.exit(2)
+	for opt, arg in opts:
+		if opt == '-h':
+			print 'test.py -i <inputfile> -o <outputfile>'
+			sys.exit()
+		elif opt in ("-n", "--name"):
+			name = arg
+		elif opt in ("-m", "--mail"):
+			mail = arg
+		elif opt in ("-c","--code"):
+			code = arg
+	
+	u = models.Profile(name=name, mail=mail, code=code)
+	db.session.add(u)
+	db.session.commit()	
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
