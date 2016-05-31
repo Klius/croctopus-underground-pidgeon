@@ -3,11 +3,15 @@ from app import db,models
 import sys, getopt
 
 def main(argv):
-	name = ''
+	id = ''
 	mail = ''
-	code = ''
+	partner = ''
+	empresa = ''
+	contacto = ''
+	telefono = ''
+	movil = ''
 	try:
-		opts, args = getopt.getopt(argv,"hn:m:c:",["name=","mail=","code="])
+		opts, args = getopt.getopt(argv,"hi:p:e:c:t:m:em:",["id=","partner=","empresa=","contacto=","telefono=","movil=","mail="])
 	except getopt.GetoptError:
 		print 'peta al inicio'
 		sys.exit(2)
@@ -15,14 +19,21 @@ def main(argv):
 		if opt == '-h':
 			print 'test.py -i <inputfile> -o <outputfile>'
 			sys.exit()
-		elif opt in ("-n", "--name"):
-			name = arg
-		elif opt in ("-m", "--mail"):
+		elif opt in ("-i", "--id"):
+			id = arg
+		elif opt in ("-p", "--partner"):
+			partner = arg
+		elif opt in ("-e","--empresa"):
+			empresa = arg
+		elif opt in ("-c","--contacto"):
+			contacto = arg
+		elif opt in ("-t","--telefono"):
+			telefono = arg
+		elif opt in ("-m","--movil"):
+			movil = arg
+		elif opt in ("-em","--mail"):
 			mail = arg
-		elif opt in ("-c","--code"):
-			code = arg
-	
-	u = models.Profile(name=name, mail=mail, code=code)
+	u = models.Profile(id=id, partner=partner,empresa=empresa,contacto=contacto,telefono=telefono,movil=movil,mail=mail)
 	db.session.add(u)
 	db.session.commit()	
 

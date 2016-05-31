@@ -23,28 +23,44 @@ def not_found(error):
 def not_found(error):
     return make_response(jsonify( { 'error': 'Not found' } ), 404)
 
+#Description: Return the servers in list form.
+def make_servers(servers):
+	list_servers = []
+	for server in servers:
+		new_server = {}
+		new_server['ip'] = server.ip
+		new_server['ref'] = server.ref
+		list_servers.append(new_server)
+	return list_servers
+
+#Description: Return the profile in a dictionary, this way we cant print it as JSON
 def make_profile(profile):
-    new_profile = {}
-    new_profile['code'] = profile.code
-    new_profile['name'] = profile.name
-    new_profile['mail'] = profile.mail
-    return new_profile
+	new_profile = {}
+	new_profile['id'] = profile.id
+	new_profile['partner'] = profile.partner
+	new_profile['empresa'] = profile.empresa
+	new_profile['contacto'] = profile.contacto
+	new_profile['telefono'] = profile.telefono
+	new_profile['movil'] = profile.movil
+	new_profile['mail'] = profile.mail
+	new_profile['servers'] = make_servers( profile.servers)
+	return new_profile
 
-
+#Erase it after debbugging
 @app.route('/platinum/api/v1.0/profile/chuleter')
 def get_all_profiles():
     profiles = models.Profile.query.all()
     cad = ""
     for p in profiles:
-        cad += "Profile: %s, mail: %s </br>"%(p.code,p.mail)
+        cad += "Profile: %s, mail: %s </br>"%(p.id,p.partner)
     return cad
 
 
-@app.route('/platinum/api/v1.0/profile/<string:code>/<string:mail>', methods = ['GET'])
+@app.route('/platinum/api/v1.0/profile/<string:id>/<string:partner>', methods = ['GET'])
 #@auth.login_required
-def get_profile(code,mail):
-    profile = models.Profile.query.get(code)
-    if profile == None or profile.mail != mail:
+def get_profile(id,partner):
+    profile = models.Profile.query.get(id)
+    if profile == None or profile.partner != partner:
         abort(404)
     return jsonify( { 'profile': make_profile(profile) } )
 
@@ -53,9 +69,10 @@ def get_profile(code,mail):
 @app.route('/platinum/api/v1.0/profile', methods = ['POST'])
 #@auth.login_required
 def create_profile():
+    print (request.json)
     if not request.json or not 'name' in request.json:
         abort(400)
-    elif models.Profile.query.get(request.json['code']) == None :
+    if models.Profile.query.get(request.json['code']) == None :
         abort(400)
     profile = models.Profile.query.get(request.json['code'])
     #update name and mail
@@ -65,24 +82,27 @@ def create_profile():
     db.session.commit()
     return jsonify( { 'profile': make_profile(profile) } ), 201
 
-@app.route('/todo/api/v1.0/tasks/<int:task_id>', methods = ['PUT'])
-@auth.login_required
-def update_task(task_id):
-    task = filter(lambda t: t['id'] == task_id, tasks)
-    if len(task) == 0:
+####
+#Description: Updates Profile info that we are willing to change
+####
+@app.route('/platinum/api/v1.0/profile/', methods = ['PUT'])
+#@auth.login_required
+def update_profile():
+    if not request.json or not 'Profile' in request.json:
+        abort(400)
+    if models.Profile.query.get(request.json['Profile']['id']) == None:
         abort(404)
-    if not request.json:
+    if 'name' in request.json and type(request.json['Profile']['empresa']) != unicode:
+       #print("name not unicode")
+        abort(400) 
+    if 'code' in request.json and type(request.json['Profile']['id']) != unicode:
         abort(400)
-    if 'title' in request.json and type(request.json['title']) != unicode:
-        abort(400)
-    if 'description' in request.json and type(request.json['description']) is not unicode:
-        abort(400)
-    if 'done' in request.json and type(request.json['done']) is not bool:
-        abort(400)
-    task[0]['title'] = request.json.get('title', task[0]['title'])
-    task[0]['description'] = request.json.get('description', task[0]['description'])
-    task[0]['done'] = request.json.get('done', task[0]['done'])
-    return jsonify( { 'task': make_public_task(task[0]) } )
+    
+    profile = models.Profile.query.get(request.json['Profile']['id']) 
+    profile.empresa = request.json['Profile']['empresa']
+    db.session.commit()
+   
+    return jsonify( { 'profile': make_profile(profile) } ),201
     
 @app.route('/todo/api/v1.0/tasks/<int:task_id>', methods = ['DELETE'])
 @auth.login_required
